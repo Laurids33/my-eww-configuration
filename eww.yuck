@@ -1,0 +1,387 @@
+;; **
+;; ** Widgets config for EWW
+;; ** Created by : @adi1090x
+;; ** Converted by : @tripleo1
+;; **
+
+;; ** Variables ***********************************************************************
+
+;; Profile vars
+(defvar IMAGE "images/profile.jpg")
+(defvar NAME "Laurids Dechow")
+(defpoll UNAME :interval "5m" `whoami`)
+
+;; System vars
+(defpoll CPU_USAGE :interval "1s" `scripts/sys_info --cpu`)
+(defpoll GPU1_USAGE :interval "1s" `scripts/sys_info --gpu1`)
+(defpoll GPU2_USAGE :interval "1s" `scripts/sys_info --gpu2`)
+(defpoll RAM_USAGE :interval "1s" `scripts/sys_info --ram`)
+(defpoll WLAN_USAGE :interval "1s" `scripts/sys_info --wlan`)
+(defpoll BAT_USAGE :interval "1s" `scripts/sys_info --bat`)
+
+;; Time vars
+(defpoll HOUR     :interval "5s" `date +\"%H\"`)   ; 00–23 (24-Stunden-Format)
+(defpoll MIN      :interval "5s" `date +\"%M\"`)   ; 00–59
+(defpoll DATE  :interval "5s" `scripts/sys_info --date`)   ; Wochentag (z. B. Monday)
+
+
+;; Uptime vars
+(defpoll UPHOUR :interval "5s" `uptime -p | awk '{print $2 \" \" $3}' | sed 's/,//g'`)
+(defpoll UPMIN :interval "5s" `uptime -p | awk '{print $4 \" \" $5}'`)
+
+;; Music vars
+(defpoll SONG :interval "1s" `scripts/music_info --song`)
+(defpoll STATUS :interval "1s" `scripts/music_info --status`)
+(defpoll CURRENT :interval "1s" `scripts/music_info --time`)
+(defpoll CTIME :interval "1s" `scripts/music_info --ctime`)
+(defpoll TTIME :interval "1s" `scripts/music_info --ttime`)
+(defpoll REPEAT :interval "0.5s" `scripts/music_info --repeat`)
+(defpoll RANDOM :interval "0.5s" `scripts/music_info --random`)
+(defpoll PLAYLIST :interval "0.5s" `scripts/music_info --getPlaylist`)
+
+;; Weather vars
+(defpoll ICON :interval "15m" `scripts/weather_info --icon`)
+(defpoll STAT :interval "15m" `scripts/weather_info --stat`)
+(defpoll TEMP :interval "15m" `scripts/weather_info --temp`)
+(defpoll HEX :interval "15m" `scripts/weather_info --hex`)
+(defpoll QUOTE :interval "15m" `scripts/weather_info --quote`)
+(defpoll QUOTE2 :interval "15m" `scripts/weather_info --quote2`)
+
+;; Apps vars
+(defpoll MAILS :interval "5m" `scripts/mails`)
+
+;; Files vars
+(defpoll FREE :interval "5s" `df -h / | awk '{print $4}' | tail -n 1 | sed 's/G/GB/'`)
+
+
+;; ** Widgets *************************************************************************
+
+
+;; background
+(defwidget bg [] 
+	(box :class "bg")
+)
+
+;; profile
+(defwidget user [] 
+	(box :class "genwin" :orientation "v" :spacing 35 :space-evenly "false" :vexpand "false" :hexpand "false"
+		(box :style "background-image: url('${IMAGE}');" :class "face" :halign "center")
+		(label :class "fullname" :halign "center" :wrap "true" :limit-width 25 :text NAME)
+		(label :class "username" :halign "center" :wrap "true" :limit-width 25 :text UNAME)))
+
+;; system
+(defwidget system [] 
+	(box :class "genwin" :vexpand "false" :hexpand "false" :orientation "h"
+		(box :orientation "v" :halign "start"
+			(label :class "sys_cpu" :halign "start" :text "CPU")
+			(label :class "sys_gpu1" :halign "start" :text "GPU 1 (Intel)")
+			(label :class "sys_gpu2" :halign "start" :text "GPU 2 (Nvidia)")
+			(label :class "sys_ram" :halign "start" :text "RAM")
+			(label :class "sys_wlan" :halign "start" :text "WLAN")
+			(label :class "sys_bat"  :halign "start" :text "BAT")
+		)
+		(box :orientation "v"
+			(label :class "sys_cpu" :halign "start" :text "Coming soon")
+			(label :class "sys_gpu1" :halign "start" :text "Coming soon")
+			(label :class "sys_gpu2" :halign "start" :text GPU2_USAGE)
+			(label :class "sys_ram" :halign "start" :text "Coming soon")
+			(label :class "sys_wlan" :halign "start" :text WLAN_USAGE)
+			(label :class "sys_bat"  :halign "start" :text BAT_USAGE)
+		)
+
+	
+	))
+
+;; clock
+(defwidget clock [] 
+	(box :class "genwin" :orientation "v" :spacing 0 :space-evenly false :vexpand "false" :hexpand "false" 
+		(box :orientation "h" :spacing 0 :halign "center"
+			(label :class "time_hour" :valign "start" :wrap "true" :limit-width 25 :text HOUR)
+			(label :class "time_hour" :valign "start" :wrap "true" :limit-width 25 :text ":")
+			(label :class "time_min" :valign "end" :wrap "true" :limit-width 25 :text MIN))
+		(box :orientation "v" :spacing 0 :halign "center" 
+			(label :class "time_date" :valign "end" :halign "end" :wrap "true" :limit-width 30 :text DATE))))
+
+;; uptime
+(defwidget uptime [] 
+	(box :class "genwin" 
+		(box :orientation "h" :halign "center" :spacing 40 :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(label :class "icontimer" :valign "center" :text "祥")
+			(box :orientation "v" :valign "center" :spacing 0 :space-evenly "false" :vexpand "false" :hexpand "false" 
+				(label :class "uphour" :halign "start" :wrap "true" :limit-width 25 :text UPHOUR)
+				(label :class "upmin" :halign "start" :wrap "true" :limit-width 25 :text UPMIN)))))
+
+;; Music
+(defwidget music [] 
+	(box :class "genwin" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false" 
+		(box :class "playlist" :orientation "h" :spacing 10 :halign "center" :space-evenly "false" :vexpand "false" :hexpand "false"
+			(button :class "btn_prev_playlist" :onclick "scripts/music_info --prevPlaylist" "")
+			(label :class "name_playlist" :wrap "true" :limit-width 20 :text PLAYLIST)
+			(button :class "btn_next_playlist" :onclick "scripts/music_info --nextPlaylist" "")
+		)
+		(label :halign "center" :class "song" :wrap "true" :limit-width 32 :text SONG)
+		(box :class "playlist" :orientation "h" :spacing 10 :halign "center" :space-evenly "false" :vexpand "false" :hexpand "false"
+			(button :class "btn_shuffle" :style RANDOM :onclick "scripts/music_info --toggleRandom")
+			(button :class "btn_prev" :onclick "scripts/music_info --prev" "玲")
+			(button :class "btn_play" :onclick "scripts/music_info --toggle" STATUS)
+			(button :class "btn_next" :onclick "scripts/music_info --next" "怜")
+			(button :class "btn_repeat" :style REPEAT :onclick "scripts/music_info --toggleRepeat" "")
+		)
+		(box :class "music_bar" :halign "center" :vexpand "false" :hexpand "false" 
+			(scale :onscroll "mpc -q seek +1" :min 0 :active "true" :max 100 :value CURRENT)
+		)
+	)
+)
+
+;; github
+(defwidget github [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/github.svg');" :onclick "scripts/open_links --github")))
+
+;; whatsapp
+(defwidget whatsapp [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/WhatsApp.svg');" :onclick "scripts/open_links --whatsapp")))
+
+;; office
+(defwidget office [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/office.svg');" :onclick "scripts/open_links --office")))
+
+;; chatgpt
+(defwidget chatgpt [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/chatgpt.svg');" :onclick "scripts/open_links --chatgpt")))
+
+;; nixos
+(defwidget nixos [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/nixos.svg');" :onclick "scripts/open_links --nixos")))
+
+;; typst
+(defwidget typst [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/typst.svg');" :onclick "scripts/open_links --typst")))
+
+;; stackoverflow
+(defwidget stackoverflow [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/stackoverflow.svg');" :onclick "scripts/open_links --stackoverflow")))
+
+;; wikipedia
+(defwidget wikipedia [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/wikipedia.svg');" :onclick "scripts/open_links --wikipedia")))
+
+;; lmarena
+(defwidget lmarena [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/lmarena.svg');" :onclick "scripts/open_links --lmarena")))
+
+;; meteoswiss
+(defwidget meteoswiss [] 
+	(box :vexpand "false" :hexpand "false" 
+		(button :class "iconweb" :style "background-image: url('images/icons/meteoswiss.svg');" :onclick "scripts/open_links --meteoswiss")))
+
+;; mail
+(defwidget mail [] 
+	(box :class "mail" 
+		(box :orientation "h" :halign "center" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(button :class "iconmail" :onclick "scripts/open_links --mail" "")
+			(box :class "mailbox" :space-evenly "false" :vexpand "false" :hexpand "false" 
+				(button :class "label_mails" :onclick "scripts/open_links --mail" MAILS)))))
+
+;; weather
+(defwidget weather [] 
+	(box :class "genwin" 
+		(box :orientation "v" :spacing 10 :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(box :orientation "h" :vexpand "false" :hexpand "false" 
+				(label :class "iconweather" :halign "start" :style "color: ${HEX};" :text ICON)
+				(label :class "label_temp" :halign "end" :text TEMP))
+			(box :orientation "v" :spacing 10 :halign "center" :space-evenly "false" :vexpand "false" :hexpand "false" 
+				(label :class "label_stat" :text STAT)
+				(label :class "label_quote" :text QUOTE)
+				(label :class "label_quote" :text QUOTE2)))))
+
+;; apps
+(defwidget apps [] 
+	(box :class "genwin" :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+		(button :style "background-image: url('images/icons/Chromium_Logo.svg');" :class "app_chromium" :onclick "scripts/open_apps --chromium")
+		(button :style "background-image: url('images/icons/Thunderbird.svg');" :class "app_thunderbird" :onclick "scripts/open_apps --thunderbird")
+		(button :style "background-image: url('images/icons/bitwarden.svg');" :class "app_bitwarden" :onclick "scripts/open_apps --bitwarden")
+		(button :style "background-image: url('images/icons/libreOfficeWriter.svg');" :class "app_writer" :onclick "scripts/open_apps --writer")
+		(button :style "background-image: url('images/icons/libreOfficeImpress.svg');" :class "app_impress" :onclick "scripts/open_apps --impress")
+		(button :style "background-image: url('images/icons/libreOfficeCalc.svg');" :class "app_calc" :onclick "scripts/open_apps --calc")
+		(button :style "background-image: url('images/icons/libreOfficeDraw.svg');" :class "app_draw" :onclick "scripts/open_apps --draw")
+		(button :style "background-image: url('images/icons/libreOfficeMath.svg');" :class "app_math" :onclick "scripts/open_apps --math")
+		(button :style "background-image: url('images/icons/libreOfficeBase.svg');" :class "app_base" :onclick "scripts/open_apps --base")
+		(button :style "background-image: url('images/icons/vscode.svg');" :class "app_vscode" :onclick "scripts/open_apps --vscode")
+		(button :style "background-image: url('images/icons/gittyup.svg');" :class "app_gittyup" :onclick "scripts/open_apps --gittyup")
+		(button :style "background-image: url('images/icons/blender.svg');" :class "app_blender" :onclick "scripts/open_apps --blender")
+		(button :style "background-image: url('images/icons/unityhub.svg');" :class "app_unityhub" :onclick "scripts/open_apps --unityhub")
+		(button :style "background-image: url('images/icons/inkscape.svg');" :class "app_inkscape" :onclick "scripts/open_apps --inkscape")
+		(button :style "background-image: url('images/icons/gimp.svg');" :class "app_gimp" :onclick "scripts/open_apps --gimp")
+		(button :style "background-image: url('images/icons/pixelorama.svg');" :class "app_pixelorama" :onclick "scripts/open_apps --pixelorama")
+		(button :style "background-image: url('images/icons/kdenlive.svg');" :class "app_kdenlive" :onclick "scripts/open_apps --kdenlive")
+		(button :style "background-image: url('images/icons/obsidian.svg');" :class "app_obsidian" :onclick "scripts/open_apps --obsidian")
+		(button :style "background-image: url('images/icons/spotify.svg');" :class "app_spotify" :onclick "scripts/open_apps --spotify")
+		(button :style "background-image: url('images/icons/more.svg');" :class "app_rofi" :onclick "scripts/open_apps --rofi")
+		
+		))
+
+;; power buttons
+(defwidget power-buttons [] 
+	(box :class "genwin" :orientation "v" :vexpand "false" :hexpand "false" 
+		(button :class "btn_poweroff" :onclick "shutdown now" "")
+		(button :class "btn_reboot" :onclick "reboot" "")
+		(button :class "btn_logout" :onclick "hyprctl dispatch exit" "")
+		(button :class "btn_sleep" :onclick "scripts/open_apps --hyprlock" "")
+	))
+
+;; folders
+(defwidget folders [] 
+	(box :class "genwin" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false" 
+		(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" :style "margin-top: 10px;"
+			(button :class "iconfolder8" :onclick "scripts/open_folders --home" "")
+			(button :class "label_folder8" :onclick "scripts/open_folders --home" "Home"))
+		(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(button :class "iconfolder1" :onclick "scripts/open_folders --docs" "")
+			(button :class "label_folder1" :onclick "scripts/open_folders --docs" "Dokumente"))
+		(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(button :class "iconfolder2" :onclick "scripts/open_folders --dl" "")
+			(button :class "label_folder2" :onclick "scripts/open_folders --dl" "Downloads"))
+		(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(button :class "iconfolder3" :onclick "scripts/open_folders --music" "")
+			(button :class "label_folder3" :onclick "scripts/open_folders --music" "Musik"))
+		(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(button :class "iconfolder4" :onclick "scripts/open_folders --pics" "")
+			(button :class "label_folder4" :onclick "scripts/open_folders --pics" "Bilder"))
+		(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(button :class "iconfolder7" :onclick "scripts/open_folders --videos" "")
+			(button :class "label_folder7" :onclick "scripts/open_folders --videos" "Videos"))
+		(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(button :class "iconfolder5" :onclick "scripts/open_folders --cfg" "ﮛ")
+			(button :class "label_folder5" :onclick "scripts/open_folders --cfg" "~/.config"))
+		(box :orientation "h" :space-evenly "false" :vexpand "false" :hexpand "false" 
+			(button :class "iconfolder6" :onclick "scripts/open_folders --local" "ﮛ")
+			(button :class "label_folder6" :onclick "scripts/open_folders --local" "~/.local"))))
+
+;; sound
+(defwidget sound []
+    (box :class "genwin" :hexpand "false" :vexpand "false"
+		(label :text "Sound (coming soon)")
+	)
+)
+
+;; ** Windows *************************************************************************
+
+
+;; background
+(defwindow background :stacking "fg" :focusable "false" :monitor "HDMI-A-2" 
+	    :geometry (geometry :x 0 :y 0 :width "1920px" :height "1080px")
+					(bg))
+
+;; profile
+(defwindow profile :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 150 :y 150 :width 350 :height 440)
+					(user))
+
+;; system
+(defwindow system :stacking "fg" :focusable "false" :monitor "HDMI-A-2" 
+	    :geometry (geometry :x 1020 :y 490 :width 440 :height 350)
+					(system))
+
+;; clock
+(defwindow clock :stacking "fg" :focusable "false" :monitor "HDMI-A-2" 
+	    :geometry (geometry :x 510 :y 360 :width 500 :height 230)
+					(clock))
+
+;; uptime
+(defwindow uptime :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 515 :y 320 :width 350 :height 155)
+					(uptime))
+
+;; music
+(defwindow music :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 510 :y 150 :width 500 :height 200)
+					(music))
+
+;; github
+(defwindow github :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 150 :y 600 :width 115 :height 115)
+					(github))
+
+;; whatsapp
+(defwindow whatsapp :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 150 :y 725 :width 115 :height 115)
+					(whatsapp))
+
+;; office
+(defwindow office :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 275 :y 600 :width 115 :height 115)
+					(office))
+
+;; chatgpt
+(defwindow chatgpt :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 275 :y 725 :width 115 :height 115)
+					(chatgpt))
+
+;; nixos
+(defwindow nixos :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 400 :y 600 :width 115 :height 115)
+					(nixos))
+
+;; typst
+(defwindow typst :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 400 :y 725 :width 115 :height 115)
+					(typst))
+
+;; stackoverflow
+(defwindow stackoverflow :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 525 :y 600 :width 115 :height 115)
+					(stackoverflow))
+
+;; wikipedia
+(defwindow wikipedia :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 525 :y 725 :width 115 :height 115)
+					(wikipedia))
+
+;; lmarena
+(defwindow lmarena :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 650 :y 600 :width 115 :height 115)
+					(lmarena))
+
+;; meteoswiss
+(defwindow meteoswiss :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 650 :y 725 :width 115 :height 115)
+					(meteoswiss))
+
+;; weather
+(defwindow weather :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 1020 :y 150 :width 610 :height 330)
+					(weather))
+
+;; apps
+(defwindow apps :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 150 :y 850 :width 1620 :height 80)
+					(apps))
+
+;; mail
+(defwindow mail :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 1140 :y 785 :width 290 :height 145)
+					(mail))
+
+;; power-buttons
+(defwindow power-buttons :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 1640 :y 150 :width 130 :height 330)
+					(power-buttons))
+
+;; folders
+(defwindow folders :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 1470 :y 490 :width 300 :height 350)
+					(folders))
+
+;; sound
+(defwindow sound :stacking "fg" :focusable "false" :monitor "HDMI-A-2"
+	    :geometry (geometry :x 775 :y 600 :width 235 :height 240)
+					(sound))

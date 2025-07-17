@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+get_cpu() {
+  usage=$(top -bn1 | awk '/Cpu\(s\)/ { print 100 - $8 }' | awk '{printf("%.0f%%\n", $1)}')
+  echo "$usage"
+}
+
+get_gpu1() {
+  usage=$(doas intel_gpu_top -J -s 1000 -o - | jq '.[].engines.render.busy' 2>/dev/null | awk '{sum+=$1} END {printf("%.0f%%\n", sum)}')
+  echo "${usage:-0%}"
+}
+
+get_gpu2() {
+  usage=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null | awk '{printf("%.0f%%\n", $1)}')
+  echo "${usage:-0%}"
+}
+
+get_ram() {
+  read -r mem_total mem_used <<< $(free -m | awk '/Mem:/ {printf("%.1f %.1f", $2/1024, $3/1024)}')
+  echo "${mem_used} / ${mem_total} GB"
+}
+
+get_wlan() {
+  iface=$(iw dev | awk '$1=="Interface"{print $2}' | head -n1)
+  speed=$(iw dev "$iface" link | awk '/tx bitrate:/ {print $3}')
+  echo "${speed:-0} MBits/s"
+}
+
+get_battery() {
+  percent=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -n1)
+  echo "${percent:-0}%"
+}
+
+## Get Date
+format_datum() {
+  date +"%A, %d. %B %Y"
+}
+
+
+## Execute accordingly
+if [[ "$1" == "--cpu" ]]; then
+	get_cpu
+elif [[ "$1" == "--gpu1" ]]; then
+	get_gpu1
+elif [[ "$1" == "--gpu2" ]]; then
+	get_gpu2
+elif [[ "$1" == "--ram" ]]; then
+	get_ram
+elif [[ "$1" == "--wlan" ]]; then
+	get_wlan
+elif [[ "$1" == "--bat" ]]; then
+	get_battery
+elif [[ "$1" == "--date" ]]; then
+	format_datum
+fi
+

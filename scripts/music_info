@@ -1,0 +1,230 @@
+#!/usr/bin/env bash
+
+## Get data
+STATUS="$(mpc status)"
+COVER="/tmp/.music_cover.jpg"
+MUSIC_DIR="$HOME/Music"
+
+## Get status
+get_status() {
+	if [[ $STATUS == *"[playing]"* ]]; then
+		echo ""
+	else
+		echo "喇"
+	fi
+}
+
+## Get song
+get_song() {
+	song=`mpc current | awk -F/ '{print $NF}'`
+	if [[ -z "$song" ]]; then
+		echo "Offline"
+	else
+		echo "$song"
+	fi	
+}
+
+
+## Get time
+get_time() {
+	time=`mpc status | grep "%)" | awk '{print $4}' | tr -d '(%)'`
+	if [[ -z "$time" ]]; then
+		echo "0"
+	else
+		echo "$time"
+	fi	
+}
+get_ctime() {
+	ctime=`mpc status | grep "#" | awk '{print $3}' | sed 's|/.*||g'`
+	if [[ -z "$ctime" ]]; then
+		echo "0:00"
+	else
+		echo "$ctime"
+	fi	
+}
+get_ttime() {
+	ttime=`mpc -f %time% current`
+	if [[ -z "$ttime" ]]; then
+		echo "0:00"
+	else
+		echo "$ttime"
+	fi	
+}
+
+get_repeat() {
+	repeat_status=$(mpc | grep -o 'repeat: [a-z]*' | cut -d' ' -f2)
+	if [ "$repeat_status" = "on" ]; then
+    	echo "color: #BF616A;"
+	else
+    	echo "color: #EBCB8B"
+	fi
+}
+
+toggle_repeat() {
+    current=$(mpc | grep -o 'repeat: [a-z]*' | cut -d' ' -f2)
+    if [ "$current" = "on" ]; then
+        mpc repeat off
+    else
+        mpc repeat on
+    fi
+}
+
+get_playlist() {
+	mpc playlist | sort > /tmp/current_playlist_sorted.txt
+
+	for f in ~/.config/mpd/playlists/*.m3u; do
+  		grep -vE '^#' "$f" | sort > /tmp/compare_playlist_sorted.txt
+  		if cmp -s /tmp/current_playlist_sorted.txt /tmp/compare_playlist_sorted.txt; then
+    		echo $(basename "$f" .m3u)
+    		rm /tmp/current_playlist_sorted.txt /tmp/compare_playlist_sorted.txt
+    		return 0
+  		fi
+	done
+
+	echo "No Playlist"
+	rm /tmp/current_playlist_sorted.txt /tmp/compare_playlist_sorted.txt
+}
+
+
+function mpc_next_playlist() {
+  playlist_dir="$HOME/.config/mpd/playlists"
+  tmp_current="/tmp/current_playlist_sorted.txt"
+  tmp_compare="/tmp/compare_playlist_sorted.txt"
+
+  # Liste aller Playlists
+  mapfile -t playlists < <(find "$playlist_dir" -name '*.m3u' -exec basename {} .m3u \; | sort)
+
+  if [[ ${#playlists[@]} -eq 0 ]]; then
+    echo "Keine Playlists gefunden."
+    return 1
+  fi
+
+  # Aktuelle Playlist (geshuffelt) sortiert exportieren
+  mpc playlist | sort > "$tmp_current"
+
+  # Aktuelle Playlist mit allen gespeicherten vergleichen
+  current_index=-1
+  for i in "${!playlists[@]}"; do
+    grep -vE '^#' "$playlist_dir/${playlists[$i]}.m3u" | sort > "$tmp_compare"
+    if cmp -s "$tmp_current" "$tmp_compare"; then
+      current_index=$i
+      break
+    fi
+  done
+
+  rm -f "$tmp_current" "$tmp_compare"
+
+  if [[ $current_index -eq -1 ]]; then
+    echo "Aktuelle Playlist konnte nicht identifiziert werden."
+    return 1
+  fi
+
+  # Nächste Playlist
+  next_index=$(( (current_index + 1) % ${#playlists[@]} ))
+  next="${playlists[$next_index]}"
+
+  # Playlist laden
+  mpc clear
+  mpc load "$next"
+  echo "Geladene Playlist: $next"
+}
+
+function mpc_prev_playlist() {
+  playlist_dir="$HOME/.config/mpd/playlists"
+  tmp_current="/tmp/current_playlist_sorted.txt"
+  tmp_compare="/tmp/compare_playlist_sorted.txt"
+
+  # Liste aller Playlists
+  mapfile -t playlists < <(find "$playlist_dir" -name '*.m3u' -exec basename {} .m3u \; | sort)
+
+  if [[ ${#playlists[@]} -eq 0 ]]; then
+    echo "Keine Playlists gefunden."
+    return 1
+  fi
+
+  # Aktuelle Playlist (geshuffelt) sortiert exportieren
+  mpc playlist | sort > "$tmp_current"
+
+  # Aktuelle Playlist mit allen gespeicherten vergleichen
+  current_index=-1
+  for i in "${!playlists[@]}"; do
+    grep -vE '^#' "$playlist_dir/${playlists[$i]}.m3u" | sort > "$tmp_compare"
+    if cmp -s "$tmp_current" "$tmp_compare"; then
+      current_index=$i
+      break
+    fi
+  done
+
+  rm -f "$tmp_current" "$tmp_compare"
+
+  if [[ $current_index -eq -1 ]]; then
+    echo "Aktuelle Playlist konnte nicht identifiziert werden."
+    return 1
+  fi
+
+  # Vorherige Playlist
+  prev_index=$(( (current_index - 1 + ${#playlists[@]}) % ${#playlists[@]} ))
+  prev="${playlists[$prev_index]}"
+
+  # Playlist laden
+  mpc clear
+  mpc load "$prev"
+  echo "Geladene Playlist: $prev"
+}
+
+get_random() {
+  repeat_status=$(mpc | grep -o 'random: [a-z]*' | cut -d' ' -f2)
+	if [ "$repeat_status" = "on" ]; then
+    	echo "background-image: url('images/icons/shuffleOn.svg');"
+	else
+    	echo "background-image: url('images/icons/shuffle.svg');"
+	fi
+}
+
+toggle_random() {
+  current=$(mpc | grep -o 'random: [a-z]*' | cut -d' ' -f2)
+    if [ "$current" = "on" ]; then
+        mpc random off
+    else
+        mpc shuffle
+        mpc random on
+    fi
+}
+
+
+## Execute accordingly
+if [[ "$1" == "--song" ]]; then
+	get_song
+elif [[ "$1" == "--artist" ]]; then
+	get_artist
+elif [[ "$1" == "--status" ]]; then
+	get_status
+elif [[ "$1" == "--time" ]]; then
+	get_time
+elif [[ "$1" == "--ctime" ]]; then
+	get_ctime
+elif [[ "$1" == "--ttime" ]]; then
+	get_ttime
+elif [[ "$1" == "--cover" ]]; then
+	get_cover
+elif [[ "$1" == "--toggle" ]]; then
+	mpc -q toggle
+elif [[ "$1" == "--next" ]]; then
+	{ mpc -q next; }
+elif [[ "$1" == "--prev" ]]; then
+	{ mpc -q prev; }
+elif [[ "$1" == "--repeat" ]]; then
+	get_repeat
+elif [[ "$1" == "--toggleRepeat" ]]; then
+	toggle_repeat
+elif [[ "$1" == "--getPlaylist" ]]; then
+	get_playlist
+elif [[ "$1" == "--nextPlaylist" ]]; then
+	mpc_next_playlist
+elif [[ "$1" == "--prevPlaylist" ]]; then
+	mpc_prev_playlist
+elif [[ "$1" == "--random" ]]; then
+	get_random
+elif [[ "$1" == "--toggleRandom" ]]; then
+	toggle_random
+fi

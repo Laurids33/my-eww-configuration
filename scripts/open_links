@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+## Open links in firefox
+FILE="$HOME/.cache/eww_launch.dashboard"
+CFG="$HOME/.config/eww/dashboard"
+EWW=`which eww`
+cmd="chromium --new-tab"
+
+close_dash() {
+	${EWW} close-all
+	rm -rf "$FILE"
+}
+
+if [[ "$1" == "--github" ]]; then
+	close_dash && ${cmd} "https://github.com"
+
+elif [[ "$1" == "--whatsapp" ]]; then
+	close_dash && ${cmd} "https://web.whatsapp.com/"
+
+elif [[ "$1" == "--office" ]]; then
+	close_dash && ${cmd} "https://m365.cloud.microsoft/search/?acctsw=1&auth=2"
+
+elif [[ "$1" == "--chatgpt" ]]; then
+	close_dash && ${cmd} "https://chatgpt.com/"
+
+elif [[ "$1" == "--nixos" ]]; then
+	close_dash && ${cmd} "https://search.nixos.org/packages"
+elif [[ "$1" == "--typst" ]]; then
+	close_dash && ${cmd} "https://typst.app/"
+elif [[ "$1" == "--stackoverflow" ]]; then
+	close_dash && ${cmd} "https://stackoverflow.com/questions"
+elif [[ "$1" == "--wikipedia" ]]; then
+	close_dash && ${cmd} "https://www.wikipedia.org/"
+elif [[ "$1" == "--lmarena" ]]; then
+	close_dash && ${cmd} "https://lmarena.ai/"
+elif [[ "$1" == "--meteoswiss" ]]; then
+	close_dash && ${cmd} "https://www.meteoschweiz.admin.ch/#tab=forecast-map"
+
+fi

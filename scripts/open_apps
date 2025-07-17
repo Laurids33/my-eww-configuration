@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+## Open Applications
+FILE="$HOME/.cache/eww_launch.dashboard"
+CFG="$HOME/.config/eww/dashboard"
+EWW=`which eww`
+
+close_dash() {
+	${EWW} close-all
+	rm -rf "$FILE"
+}
+
+if [[ "$1" == "--chromium" ]]; then
+	close_dash && chromium &
+
+elif [[ "$1" == "--thunderbird" ]]; then
+	close_dash && thunderbird &
+
+elif [[ "$1" == "--bitwarden" ]]; then
+	close_dash && bitwarden &
+
+elif [[ "$1" == "--writer" ]]; then
+	close_dash && libreoffice --writer &
+
+elif [[ "$1" == "--impress" ]]; then
+	close_dash && libreoffice --impress &
+
+elif [[ "$1" == "--draw" ]]; then
+	close_dash && libreoffice --draw &
+
+elif [[ "$1" == "--calc" ]]; then
+	close_dash && libreoffice --calc &
+
+elif [[ "$1" == "--math" ]]; then
+	close_dash && libreoffice --math &
+
+elif [[ "$1" == "--base" ]]; then
+	close_dash && libreoffice --base &
+
+elif [[ "$1" == "--vscode" ]]; then
+	close_dash && code &
+
+elif [[ "$1" == "--gittyup" ]]; then
+	close_dash && gittyup &
+
+elif [[ "$1" == "--blender" ]]; then
+	close_dash && nvidia-offload blender &
+
+elif [[ "$1" == "--unityhub" ]]; then
+	close_dash && nvidia-offload unityhub &
+
+elif [[ "$1" == "--inkscape" ]]; then
+	close_dash && inkscape &
+
+elif [[ "$1" == "--gimp" ]]; then
+	close_dash && gimp &
+
+elif [[ "$1" == "--pixelorama" ]]; then
+	close_dash && pixelorama &
+
+elif [[ "$1" == "--kdenlive" ]]; then
+	close_dash && kdenlive &
+
+elif [[ "$1" == "--obsidian" ]]; then
+	close_dash && obsidian &
+
+elif [[ "$1" == "--spotify" ]]; then
+	close_dash && spotify &
+
+elif [[ "$1" == "--rofi" ]]; then
+	close_dash && rofi -show drun -show-icons &
+
+elif [[ "$1" == "--hyprlock" ]]; then
+	close_dash && hyprlock &
+
+
+fi
